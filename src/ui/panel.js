@@ -75,7 +75,7 @@ function downloadGpx(spots) {
     <desc>${escapeXml(spotDesc(s))}</desc>
   </wpt>`).join('\n');
   const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="Drone Vantage" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="Drone Launch Finder" xmlns="http://www.topografix.com/GPX/1/1">
 ${pts}
 </gpx>`;
   download(gpx, 'application/gpx+xml', 'drone-vantage-launch-spots.gpx');
@@ -91,7 +91,7 @@ function downloadKml(spots) {
   const kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name>Drone Vantage</name>
+    <name>Drone Launch Finder</name>
 ${placemarks}
   </Document>
 </kml>`;
