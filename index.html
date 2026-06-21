@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Find the best drone launch spots and see where you can fly within line-of-sight - real elevation, satellite tree cover, and FAA airspace ceilings." />
+    <title>Drone Vantage - best launch spots & line-of-sight coverage</title>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <div id="sidebar">
+      <header>
+        <h1>Drone&nbsp;Vantage</h1>
+        <p class="tag">Best launch spots &amp; line-of-sight coverage for any ground</p>
+      </header>
+
+      <div class="search-row">
+        <input id="search" type="text" placeholder="Search a place, address, or lat,lng" autocomplete="off" />
+        <button id="search-btn" title="Search">Go</button>
+      </div>
+
+      <div class="step">
+        <button id="draw-btn" class="primary">Draw flight area</button>
+        <button id="clear-btn" class="ghost" hidden>Clear</button>
+        <p class="hint" id="draw-hint">Tap "Draw flight area", then drag a box across your ground.</p>
+      </div>
+
+      <button id="analyze-btn" class="primary big" disabled>Find best launch spots</button>
+
+      <div id="progress" hidden>
+        <div class="bar"><div class="fill" id="progress-fill"></div></div>
+        <span id="progress-label">Working...</span>
+      </div>
+
+      <div class="overlay-row">
+        <button id="toggle-airspace" class="ghost" hidden>Hide airspace ceilings</button>
+      </div>
+
+      <details id="settings">
+        <summary>Tune the analysis</summary>
+        <label class="fld">Flight style
+          <select id="pilot-mode">
+            <option value="fpv">FPV / freestyle (signal-limited)</option>
+            <option value="mapping" selected>Mapping / survey (coverage)</option>
+            <option value="cinematic">Cinematic / long-range</option>
+          </select>
+        </label>
+        <label class="fld">Line-of-sight range
+          <select id="range">
+            <option value="500">500 m</option>
+            <option value="1000" selected>1000 m</option>
+            <option value="2000">2000 m</option>
+            <option value="4000">4000 m</option>
+          </select>
+        </label>
+        <label class="fld">Pilot / antenna height
+          <select id="antenna">
+            <option value="1.7" selected>Standing (1.7 m)</option>
+            <option value="2.5">Mast / elevated (2.5 m)</option>
+            <option value="4">Tall mast (4 m)</option>
+          </select>
+        </label>
+        <label class="fld">Flight height (AGL)
+          <select id="drone-agl">
+            <option value="30">30 m (100 ft)</option>
+            <option value="60" selected>60 m (200 ft)</option>
+            <option value="120">120 m (400 ft)</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" id="thru-trees" checked /> Trees block signal (FPV / low flight)</label>
+
+        <p class="wt-title">Weights</p>
+        <label class="slider">Line-of-sight coverage <input type="range" id="w-los" min="0" max="100" value="35" /></label>
+        <label class="slider">Legal ceiling <input type="range" id="w-ceiling" min="0" max="100" value="15" /></label>
+        <label class="slider">Launch pad quality <input type="range" id="w-launch" min="0" max="100" value="15" /></label>
+        <label class="slider">High ground <input type="range" id="w-prom" min="0" max="100" value="15" /></label>
+        <label class="slider">Obstruction clearance <input type="range" id="w-clearance" min="0" max="100" value="10" /></label>
+        <label class="slider">Airspace safety <input type="range" id="w-airspace" min="0" max="100" value="10" /></label>
+      </details>
+
+      <div id="results"></div>
+
+      <footer>
+        <p class="attr">Elevation: Mapzen/AWS Terrain Tiles. Imagery: Esri World Imagery. Airspace: FAA UAS Facility Maps.</p>
+        <p class="disc">Models line-of-sight and shows published LAANC ceilings - it is not an authorization, NOTAM check, or a substitute for FAA-approved apps and current charts. Fly Part 107 / recreational rules, check TFRs, and stay within visual line of sight.</p>
+      </footer>
+    </div>
+
+    <div id="viewer" hidden>
+      <div id="viewer-bar">
+        <span id="viewer-title">3D coverage view</span>
+        <button id="viewer-close">Close</button>
+      </div>
+      <canvas id="viewer-canvas"></canvas>
+      <p id="viewer-hint">Drag to orbit · scroll to zoom · the marker is the launch point, cyan is line-of-sight coverage</p>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
