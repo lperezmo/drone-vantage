@@ -12,8 +12,7 @@
 //   img - Esri World Imagery (note: ArcGIS tile path is /{z}/{y}/{x})
 
 const SOURCES = {
-  dem: (z, x, y) =>
-    `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`,
+  dem: (z, x, y) => `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`,
   img: (z, x, y) =>
     `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
 };
@@ -59,7 +58,10 @@ export async function proxyTile(reqUrl, res) {
       return;
     }
     const buf = Buffer.from(await upstream.arrayBuffer());
-    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+    res.setHeader(
+      'Content-Type',
+      upstream.headers.get('content-type') || 'application/octet-stream',
+    );
     res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, immutable');
     res.statusCode = 200;
     res.end(buf);

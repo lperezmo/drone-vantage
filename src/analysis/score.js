@@ -50,10 +50,16 @@ function deriveLayers(parcel, signalThruTrees) {
     }
   }
   const localMean = (c, r, rad) => {
-    const c0 = Math.max(0, c - rad), c1 = Math.min(gridW - 1, c + rad);
-    const r0 = Math.max(0, r - rad), r1 = Math.min(gridH - 1, r + rad);
+    const c0 = Math.max(0, c - rad),
+      c1 = Math.min(gridW - 1, c + rad);
+    const r0 = Math.max(0, r - rad),
+      r1 = Math.min(gridH - 1, r + rad);
     const area = (c1 - c0 + 1) * (r1 - r0 + 1);
-    const s = sat[(r1 + 1) * sw + (c1 + 1)] - sat[r0 * sw + (c1 + 1)] - sat[(r1 + 1) * sw + c0] + sat[r0 * sw + c0];
+    const s =
+      sat[(r1 + 1) * sw + (c1 + 1)] -
+      sat[r0 * sw + (c1 + 1)] -
+      sat[(r1 + 1) * sw + c0] +
+      sat[r0 * sw + c0];
     return s / area;
   };
 
@@ -61,16 +67,22 @@ function deriveLayers(parcel, signalThruTrees) {
 }
 
 function normalize(arr) {
-  let min = Infinity, max = -Infinity;
-  for (const v of arr) { if (v < min) min = v; if (v > max) max = v; }
+  let min = Infinity,
+    max = -Infinity;
+  for (const v of arr) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
   const span = max - min || 1;
   return (v) => (v - min) / span;
 }
 
 // Local terrain slope (degrees) at a grid cell, for takeoff suitability.
 function slopeDegAt(heights, gridW, gridH, c, r, mpp) {
-  const cl = Math.max(c - 1, 0), cr = Math.min(c + 1, gridW - 1);
-  const ru = Math.max(r - 1, 0), rd = Math.min(r + 1, gridH - 1);
+  const cl = Math.max(c - 1, 0),
+    cr = Math.min(c + 1, gridW - 1);
+  const ru = Math.max(r - 1, 0),
+    rd = Math.min(r + 1, gridH - 1);
   const dx = (heights[r * gridW + cr] - heights[r * gridW + cl]) / ((cr - cl) * mpp);
   const dz = (heights[rd * gridW + c] - heights[ru * gridW + c]) / ((rd - ru) * mpp);
   return (Math.atan(Math.hypot(dx, dz)) * 180) / Math.PI;
@@ -78,18 +90,24 @@ function slopeDegAt(heights, gridW, gridH, c, r, mpp) {
 
 // Mean canopy density (0..1) in a small box around a launch cell, for clearance.
 function localCanopy(forest, gridW, gridH, c, r, rad) {
-  const c0 = Math.max(0, c - rad), c1 = Math.min(gridW - 1, c + rad);
-  const r0 = Math.max(0, r - rad), r1 = Math.min(gridH - 1, r + rad);
-  let sum = 0, n = 0;
+  const c0 = Math.max(0, c - rad),
+    c1 = Math.min(gridW - 1, c + rad);
+  const r0 = Math.max(0, r - rad),
+    r1 = Math.min(gridH - 1, r + rad);
+  let sum = 0,
+    n = 0;
   for (let rr = r0; rr <= r1; rr++) {
-    for (let cc = c0; cc <= c1; cc++) { sum += forest[rr * gridW + cc]; n++; }
+    for (let cc = c0; cc <= c1; cc++) {
+      sum += forest[rr * gridW + cc];
+      n++;
+    }
   }
   return n ? sum / n / 255 : 0;
 }
 
 export function analyze(parcel, ui) {
   const { gridW, gridH, heights, forest, metersPerPx, bbox } = parcel;
-  const ceiling = parcel.ceiling;       // Int16Array merged in by the worker
+  const ceiling = parcel.ceiling; // Int16Array merged in by the worker
   const airspace = parcel.airspace || { airports: [], ok: false };
   const signalThruTrees = !!ui.signalThruTrees;
   const { zc, localMean } = deriveLayers(parcel, signalThruTrees);
@@ -179,7 +197,9 @@ export function analyze(parcel, ui) {
     }
   }
 
-  const nLos = normalize(losA), nCeil = normalize(ceilA), nProm = normalize(promA);
+  const nLos = normalize(losA),
+    nCeil = normalize(ceilA),
+    nProm = normalize(promA);
   const score = new Float32Array(cgW * cgH);
   for (let i = 0; i < score.length; i++) {
     score[i] =
@@ -198,12 +218,14 @@ export function analyze(parcel, ui) {
   const taken = new Uint8Array(cgW * cgH);
   for (const idx of order) {
     if (picked.length >= 6) break;
-    const cx = idx % cgW, cy = (idx / cgW) | 0;
+    const cx = idx % cgW,
+      cy = (idx / cgW) | 0;
     if (taken[idx]) continue;
     picked.push({ cx, cy, idx, s: score[idx] });
     for (let dy = -spacing; dy <= spacing; dy++) {
       for (let dx = -spacing; dx <= spacing; dx++) {
-        const nx = cx + dx, ny = cy + dy;
+        const nx = cx + dx,
+          ny = cy + dy;
         if (nx >= 0 && ny >= 0 && nx < cgW && ny < cgH) taken[ny * cgW + nx] = 1;
       }
     }
@@ -211,7 +233,8 @@ export function analyze(parcel, ui) {
 
   // detail pass on the winners: footprint + reasons
   const lon = (col) => bbox.west + (gridW <= 1 ? 0 : (col / (gridW - 1)) * (bbox.east - bbox.west));
-  const lat = (row) => bbox.north + (gridH <= 1 ? 0 : (row / (gridH - 1)) * (bbox.south - bbox.north));
+  const lat = (row) =>
+    bbox.north + (gridH <= 1 ? 0 : (row / (gridH - 1)) * (bbox.south - bbox.north));
   const sMin = picked.length ? picked[picked.length - 1].s : 0;
   const sMax = picked.length ? picked[0].s : 1;
 
@@ -228,21 +251,55 @@ export function analyze(parcel, ui) {
 
     // why-text contributions, ranked by weighted value
     const contrib = [
-      { k: 'los', v: w.los * nLos(losA[pk.idx]), t: `keeps line-of-sight over about ${coverageAcres} acres` },
-      { k: 'ceiling', v: w.ceiling * nCeil(ceilA[pk.idx]), t: ceilingFt > 0 ? `ceiling up to ${ceilingFt} ft here` : 'no LAANC ceiling here (controlled airspace)' },
+      {
+        k: 'los',
+        v: w.los * nLos(losA[pk.idx]),
+        t: `keeps line-of-sight over about ${coverageAcres} acres`,
+      },
+      {
+        k: 'ceiling',
+        v: w.ceiling * nCeil(ceilA[pk.idx]),
+        t:
+          ceilingFt > 0
+            ? `ceiling up to ${ceilingFt} ft here`
+            : 'no LAANC ceiling here (controlled airspace)',
+      },
       { k: 'launch', v: w.launch * launchA[pk.idx], t: 'open, level pad for takeoff and GPS lock' },
-      { k: 'prom', v: w.prom * nProm(promA[pk.idx]), t: prom > 2 ? `sits ${Math.round(prom)} m above the surrounding ground for a clean signal` : 'reads the terrain well for a clean signal' },
-      { k: 'clearance', v: w.clearance * clearA[pk.idx], t: 'clear of tall obstructions around the pad' },
-      { k: 'airspace', v: w.airspace * airA[pk.idx], t: dM < 1500 ? 'some standoff from nearby airspace' : 'well clear of controlled airspace' },
-    ].filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
+      {
+        k: 'prom',
+        v: w.prom * nProm(promA[pk.idx]),
+        t:
+          prom > 2
+            ? `sits ${Math.round(prom)} m above the surrounding ground for a clean signal`
+            : 'reads the terrain well for a clean signal',
+      },
+      {
+        k: 'clearance',
+        v: w.clearance * clearA[pk.idx],
+        t: 'clear of tall obstructions around the pad',
+      },
+      {
+        k: 'airspace',
+        v: w.airspace * airA[pk.idx],
+        t: dM < 1500 ? 'some standoff from nearby airspace' : 'well clear of controlled airspace',
+      },
+    ]
+      .filter((x) => x.v > 0)
+      .sort((a, b) => b.v - a.v);
 
-    const why = capitalize(contrib.slice(0, 3).map((x) => x.t).join(' · '));
+    const why = capitalize(
+      contrib
+        .slice(0, 3)
+        .map((x) => x.t)
+        .join(' · '),
+    );
     const rel = sMax > sMin ? (pk.s - sMin) / (sMax - sMin) : 1;
     const rating = Math.round(55 + rel * 44); // 55..99 feel-good score
 
     return {
       rank: rank + 1,
-      lon: lon(ox), lat: lat(oy),
+      lon: lon(ox),
+      lat: lat(oy),
       elevation: Math.round(heights[i]),
       rating,
       why,
@@ -250,7 +307,8 @@ export function analyze(parcel, ui) {
       coverageAcres,
       ceilingFt,
       footprint: fp.vis,
-      ox, oy,
+      ox,
+      oy,
     };
   });
 
@@ -260,11 +318,18 @@ export function analyze(parcel, ui) {
   for (let i = 0; i < score.length; i++) heat[i] = nScore(score[i]);
 
   return {
-    gridW, gridH, cgW, cgH, stride,
-    bbox, metersPerPx,
-    heat, spots,
+    gridW,
+    gridH,
+    cgW,
+    cgH,
+    stride,
+    bbox,
+    metersPerPx,
+    heat,
+    spots,
     // raw layers returned so the 3D view + overlay can reuse them
-    heights, forest,
+    heights,
+    forest,
     ceiling: ceiling || new Int16Array(gridW * gridH).fill(-1),
     demZoom: parcel.demZoom,
     airspace,

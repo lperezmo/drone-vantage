@@ -26,11 +26,11 @@ function cellLat(bbox, gridH, row) {
 function pointInRing(lon, lat, ring) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0], yi = ring[i][1];
-    const xj = ring[j][0], yj = ring[j][1];
-    const intersect =
-      (yi > lat) !== (yj > lat) &&
-      lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    const xi = ring[i][0],
+      yi = ring[i][1];
+    const xj = ring[j][0],
+      yj = ring[j][1];
+    const intersect = yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
     if (intersect) inside = !inside;
   }
   return inside;
@@ -61,7 +61,10 @@ function pointInGeometry(lon, lat, geom) {
 
 // Axis-aligned bbox of a geometry's coordinates, for a cheap reject test.
 function geometryBounds(geom) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   const polys = geom.type === 'MultiPolygon' ? geom.coordinates : [geom.coordinates];
   for (const poly of polys) {
     const ring = poly && poly[0];
@@ -86,7 +89,14 @@ function outerRing(geom) {
 // Everything-is-Class-G fallback grid. Used when the upstream fetch fails.
 function classGFallback(gridW, gridH) {
   const ceiling = new Int16Array(gridW * gridH).fill(-1);
-  return { ceiling, zones: [], airports: [], maxCeiling: DEFAULT_CEILING, minCeiling: DEFAULT_CEILING, ok: false };
+  return {
+    ceiling,
+    zones: [],
+    airports: [],
+    maxCeiling: DEFAULT_CEILING,
+    minCeiling: DEFAULT_CEILING,
+    ok: false,
+  };
 }
 
 export async function fetchAirspaceGrid(bbox, gridW, gridH, onProgress = () => {}) {
@@ -94,8 +104,7 @@ export async function fetchAirspaceGrid(bbox, gridW, gridH, onProgress = () => {
 
   let payload;
   try {
-    const url =
-      `/api/airspace?w=${bbox.west}&s=${bbox.south}&e=${bbox.east}&n=${bbox.north}`;
+    const url = `/api/airspace?w=${bbox.west}&s=${bbox.south}&e=${bbox.east}&n=${bbox.north}`;
     const r = await fetch(url);
     if (!r.ok) return classGFallback(gridW, gridH);
     payload = await r.json();
@@ -145,7 +154,8 @@ export async function fetchAirspaceGrid(bbox, gridW, gridH, onProgress = () => {
 
   // min/max over the parcel - ignore -1 (Class G) and 0 (no-LAANC) for the floor
   // when any real grid ceiling is present, per the contract.
-  let maxCeiling = -Infinity, minCeiling = Infinity;
+  let maxCeiling = -Infinity,
+    minCeiling = Infinity;
   for (let i = 0; i < ceiling.length; i++) {
     const v = ceiling[i];
     const eff = v === -1 ? DEFAULT_CEILING : v;
@@ -161,9 +171,7 @@ export async function fetchAirspaceGrid(bbox, gridW, gridH, onProgress = () => {
   // most restrictive / lowest ceilings first) plus one marker per airport.
   const zones = [];
   const ZONE_LIMIT = 40;
-  const sorted = prepared
-    .filter((p) => outerRing(p.geom))
-    .sort((a, b) => a.ceiling - b.ceiling);
+  const sorted = prepared.filter((p) => outerRing(p.geom)).sort((a, b) => a.ceiling - b.ceiling);
   const step = Math.max(1, Math.ceil(sorted.length / ZONE_LIMIT));
   for (let i = 0; i < sorted.length && zones.length < ZONE_LIMIT; i += step) {
     const ring = outerRing(sorted[i].geom).map((pt) => [pt[0], pt[1]]);

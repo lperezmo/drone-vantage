@@ -16,7 +16,7 @@ self.onmessage = async (e) => {
 
     post(0.93, 'Checking airspace...');
     const airspace = await fetchAirspaceGrid(bbox, parcel.gridW, parcel.gridH, (pct, label) =>
-      post(0.93 + 0.03 * (pct || 0), label || 'Checking airspace...')
+      post(0.93 + 0.03 * (pct || 0), label || 'Checking airspace...'),
     );
     parcel.ceiling = airspace.ceiling;
     parcel.airspace = {

@@ -1,0 +1,10 @@
+[fmt]
+# 100 and single quotes match how this code was already written, so formatting
+# moved as few lines as it could.
+printWidth = 100
+singleQuote = true
+
+[lint]
+
+[lint.rules]
+"eqeqeq" = ["error", "smart"]

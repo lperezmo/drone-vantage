@@ -10,7 +10,8 @@ export const lat2tile = (lat, z) => {
   return ((1 - Math.asinh(Math.tan(rad)) / Math.PI) / 2) * 2 ** z;
 };
 export const tile2lon = (x, z) => (x / 2 ** z) * 360 - 180;
-export const tile2lat = (y, z) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / 2 ** z))) * 180) / Math.PI;
+export const tile2lat = (y, z) =>
+  (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / 2 ** z))) * 180) / Math.PI;
 
 // Mercator metres per pixel at a zoom, before latitude correction.
 export const mercPerPx = (z) => EARTH_CIRCUMFERENCE / 2 ** z / TILE;

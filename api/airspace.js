@@ -45,13 +45,16 @@ function buildQuery(w, s, e, n) {
 // Mean longitude of a ceiling feature's outer ring, used to place an airport pin.
 function ringMeanLon(geometry) {
   if (!geometry) return null;
-  const polys =
-    geometry.type === 'MultiPolygon' ? geometry.coordinates : [geometry.coordinates];
-  let sum = 0, n = 0;
+  const polys = geometry.type === 'MultiPolygon' ? geometry.coordinates : [geometry.coordinates];
+  let sum = 0,
+    n = 0;
   for (const poly of polys) {
     const ring = poly && poly[0];
     if (!ring) continue;
-    for (const pt of ring) { sum += pt[0]; n++; }
+    for (const pt of ring) {
+      sum += pt[0];
+      n++;
+    }
   }
   return n ? sum / n : null;
 }
@@ -74,7 +77,8 @@ function deriveAirports(features) {
       a = { name, icao: p.APT1_ICAO || null, lat, lonSum: 0, lonN: 0 };
       byApt.set(key, a);
     }
-    a.lonSum += lon; a.lonN++;
+    a.lonSum += lon;
+    a.lonN++;
   }
   const out = [];
   for (const a of byApt.values()) {
@@ -127,11 +131,13 @@ export async function proxyAirspace(reqUrl, res) {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
     res.statusCode = 200;
-    res.end(JSON.stringify({
-      ok: true,
-      ceilingFeatures: { type: 'FeatureCollection', features },
-      airports,
-    }));
+    res.end(
+      JSON.stringify({
+        ok: true,
+        ceilingFeatures: { type: 'FeatureCollection', features },
+        airports,
+      }),
+    );
   } catch (err) {
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = 200;
