@@ -2,7 +2,10 @@
 // result overlays (launch-suitability heatmap + selected-spot LOS footprint +
 // FAA airspace-ceiling choropleth + airport markers + pins).
 
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+
+maplibregl.setWorkerUrl(mapWorkerUrl);
 
 const SAT_STYLE = {
   version: 8,
