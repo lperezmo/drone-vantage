@@ -19,7 +19,12 @@ export function openViewer(canvas, result, spot) {
   scene.background = new THREE.Color(0x8fb4d6);
   scene.fog = new THREE.Fog(0x8fb4d6, W * 0.9, W * 3.2);
 
-  const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight || 1.6, 1, 60000);
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    canvas.clientWidth / canvas.clientHeight || 1.6,
+    1,
+    60000,
+  );
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -34,7 +39,8 @@ export function openViewer(canvas, result, spot) {
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array(gridW * gridH * 3);
   const uv = new Float32Array(gridW * gridH * 2);
-  const halfW = W / 2, halfH = H / 2;
+  const halfW = W / 2,
+    halfH = H / 2;
   for (let r = 0; r < gridH; r++) {
     for (let c = 0; c < gridW; c++) {
       const i = r * gridW + c;
@@ -54,7 +60,11 @@ export function openViewer(canvas, result, spot) {
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-  geo.setIndex(gridW * gridH > 65000 ? new THREE.Uint32BufferAttribute(idx, 1) : new THREE.Uint16BufferAttribute(idx, 1));
+  geo.setIndex(
+    gridW * gridH > 65000
+      ? new THREE.Uint32BufferAttribute(idx, 1)
+      : new THREE.Uint16BufferAttribute(idx, 1),
+  );
   geo.computeVertexNormals();
 
   const texture = buildTexture(result, spot);
@@ -66,18 +76,18 @@ export function openViewer(canvas, result, spot) {
   const vWorld = new THREE.Vector3(
     spot.ox * metersPerPx - halfW,
     launchGround,
-    spot.oy * metersPerPx - halfH
+    spot.oy * metersPerPx - halfH,
   );
   const coneH = Math.max(28, W * 0.04);
   const marker = new THREE.Mesh(
     new THREE.ConeGeometry(Math.max(8, W * 0.012), coneH, 4),
-    new THREE.MeshBasicMaterial({ color: 0x22d3ee })
+    new THREE.MeshBasicMaterial({ color: 0x22d3ee }),
   );
   marker.position.copy(vWorld).y += coneH / 2 + 6;
   scene.add(marker);
   const stem = new THREE.Mesh(
     new THREE.CylinderGeometry(1.5, 1.5, coneH, 6),
-    new THREE.MeshBasicMaterial({ color: 0x0c4a52 })
+    new THREE.MeshBasicMaterial({ color: 0x0c4a52 }),
   );
   stem.position.copy(vWorld).y += coneH / 2 + 6;
   scene.add(stem);
@@ -86,7 +96,7 @@ export function openViewer(canvas, result, spot) {
   // Translucent disc floated over the launch point at the legal AGL ceiling.
   // Amber when LAANC grants room, red when ceilingFt is 0 (no LAANC / no-go).
   try {
-    const ceilingFt = (spot && typeof spot.ceilingFt === 'number') ? spot.ceilingFt : -1;
+    const ceilingFt = spot && typeof spot.ceilingFt === 'number' ? spot.ceilingFt : -1;
     if (ceilingFt !== 0) {
       const ceilM = (ceilingFt > 0 ? ceilingFt : 400) * 0.3048;
       const lidY = launchGround + ceilM;
@@ -99,7 +109,7 @@ export function openViewer(canvas, result, spot) {
           opacity: 0.16,
           side: THREE.DoubleSide,
           depthWrite: false,
-        })
+        }),
       );
       lid.rotation.x = -Math.PI / 2;
       lid.position.set(vWorld.x, lidY, vWorld.z);
@@ -112,7 +122,7 @@ export function openViewer(canvas, result, spot) {
       ]);
       const col = new THREE.Line(
         colGeo,
-        new THREE.LineBasicMaterial({ color: 0xf5a623, transparent: true, opacity: 0.4 })
+        new THREE.LineBasicMaterial({ color: 0xf5a623, transparent: true, opacity: 0.4 }),
       );
       scene.add(col);
     } else {
@@ -126,7 +136,7 @@ export function openViewer(canvas, result, spot) {
           opacity: 0.14,
           side: THREE.DoubleSide,
           depthWrite: false,
-        })
+        }),
       );
       lid.rotation.x = -Math.PI / 2;
       lid.position.set(vWorld.x, launchGround + Math.max(20, W * 0.03), vWorld.z);
@@ -170,7 +180,8 @@ function buildTexture(result, spot) {
   const tw = texBitmap ? texW : gridW;
   const th = texBitmap ? texH : gridH;
   const cv = document.createElement('canvas');
-  cv.width = tw; cv.height = th;
+  cv.width = tw;
+  cv.height = th;
   const ctx = cv.getContext('2d');
   if (texBitmap) {
     ctx.drawImage(texBitmap, 0, 0);
@@ -179,18 +190,27 @@ function buildTexture(result, spot) {
     const img = ctx.createImageData(gridW, gridH);
     for (let i = 0; i < gridW * gridH; i++) {
       const f = result.forest[i] / 255;
-      img.data[i * 4] = 90 - f * 40; img.data[i * 4 + 1] = 110 + f * 70; img.data[i * 4 + 2] = 70; img.data[i * 4 + 3] = 255;
+      img.data[i * 4] = 90 - f * 40;
+      img.data[i * 4 + 1] = 110 + f * 70;
+      img.data[i * 4 + 2] = 70;
+      img.data[i * 4 + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
   }
   // overlay footprint (scaled from grid res to texture res) in cyan
   const fp = spot.footprint;
   const ov = document.createElement('canvas');
-  ov.width = gridW; ov.height = gridH;
+  ov.width = gridW;
+  ov.height = gridH;
   const octx = ov.getContext('2d');
   const oimg = octx.createImageData(gridW, gridH);
   for (let i = 0; i < fp.length; i++) {
-    if (fp[i]) { oimg.data[i * 4] = 120; oimg.data[i * 4 + 1] = 220; oimg.data[i * 4 + 2] = 255; oimg.data[i * 4 + 3] = 90; }
+    if (fp[i]) {
+      oimg.data[i * 4] = 120;
+      oimg.data[i * 4 + 1] = 220;
+      oimg.data[i * 4 + 2] = 255;
+      oimg.data[i * 4 + 3] = 90;
+    }
   }
   octx.putImageData(oimg, 0, 0);
   ctx.imageSmoothingEnabled = true;
@@ -205,7 +225,10 @@ function buildTexture(result, spot) {
 export function disposeViewer() {
   if (raf) cancelAnimationFrame(raf);
   raf = null;
-  if (controls) { controls.dispose(); controls = null; }
+  if (controls) {
+    controls.dispose();
+    controls = null;
+  }
   if (renderer) {
     if (renderer._onResize) window.removeEventListener('resize', renderer._onResize);
     renderer.dispose();

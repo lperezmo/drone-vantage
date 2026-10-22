@@ -4,7 +4,8 @@
 export function renderResults(container, spots, { onSelect, onView3d }) {
   container.innerHTML = '';
   if (!spots || !spots.length) {
-    container.innerHTML = '<p class="empty">No launch spots found - try a larger or more varied area.</p>';
+    container.innerHTML =
+      '<p class="empty">No launch spots found - try a larger or more varied area.</p>';
     return { select: () => {} };
   }
 
@@ -17,9 +18,10 @@ export function renderResults(container, spots, { onSelect, onView3d }) {
   spots.forEach((s) => {
     const card = document.createElement('div');
     card.className = 'card';
-    const ceil = s.ceilingFt === 0
-      ? '<span class="no-laanc">ceiling: no LAANC</span>'
-      : `ceiling ${s.ceilingFt} ft`;
+    const ceil =
+      s.ceilingFt === 0
+        ? '<span class="no-laanc">ceiling: no LAANC</span>'
+        : `ceiling ${s.ceilingFt} ft`;
     card.innerHTML = `
       <div class="rank">
         <span class="badge">${s.rank}</span>
@@ -30,7 +32,10 @@ export function renderResults(container, spots, { onSelect, onView3d }) {
       <div class="coords">${s.lat.toFixed(5)}, ${s.lon.toFixed(5)} · ${s.elevation} m</div>
       <button class="view3d">View in 3D</button>`;
     card.addEventListener('click', () => onSelect(s.rank));
-    card.querySelector('.view3d').addEventListener('click', (e) => { e.stopPropagation(); onView3d(s.rank); });
+    card.querySelector('.view3d').addEventListener('click', (e) => {
+      e.stopPropagation();
+      onView3d(s.rank);
+    });
     container.appendChild(card);
     cards.push(card);
   });
@@ -63,17 +68,22 @@ export function renderResults(container, spots, { onSelect, onView3d }) {
   return { select };
 }
 
-const ceilingLabel = (s) => (s.ceilingFt === 0 ? 'no LAANC (controlled, no-go)' : `${s.ceilingFt} ft`);
+const ceilingLabel = (s) =>
+  s.ceilingFt === 0 ? 'no LAANC (controlled, no-go)' : `${s.ceilingFt} ft`;
 const spotDesc = (s) =>
   `Rank ${s.rank} - score ${s.rating} - ~${s.coverageAcres} acres LOS coverage - ceiling ${ceilingLabel(s)}. ${s.why}.`;
 
 function downloadGpx(spots) {
-  const pts = spots.map((s) =>
-    `  <wpt lat="${s.lat.toFixed(6)}" lon="${s.lon.toFixed(6)}">
+  const pts = spots
+    .map(
+      (s) =>
+        `  <wpt lat="${s.lat.toFixed(6)}" lon="${s.lon.toFixed(6)}">
     <ele>${s.elevation}</ele>
     <name>Launch ${s.rank} (score ${s.rating})</name>
     <desc>${escapeXml(spotDesc(s))}</desc>
-  </wpt>`).join('\n');
+  </wpt>`,
+    )
+    .join('\n');
   const gpx = `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="Drone Launch Finder" xmlns="http://www.topografix.com/GPX/1/1">
 ${pts}
@@ -82,12 +92,16 @@ ${pts}
 }
 
 function downloadKml(spots) {
-  const placemarks = spots.map((s) =>
-    `    <Placemark>
+  const placemarks = spots
+    .map(
+      (s) =>
+        `    <Placemark>
       <name>Launch ${s.rank} (score ${s.rating})</name>
       <description>${escapeXml(spotDesc(s))}</description>
       <Point><coordinates>${s.lon.toFixed(6)},${s.lat.toFixed(6)},${s.elevation}</coordinates></Point>
-    </Placemark>`).join('\n');
+    </Placemark>`,
+    )
+    .join('\n');
   const kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
@@ -107,4 +121,8 @@ function download(text, mime, filename) {
   URL.revokeObjectURL(a.href);
 }
 
-const escapeXml = (s) => String(s).replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
+const escapeXml = (s) =>
+  String(s).replace(
+    /[<>&'"]/g,
+    (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[c],
+  );

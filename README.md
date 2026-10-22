@@ -37,14 +37,14 @@ No API keys. Everything runs on free, keyless data:
    ground. Terrain is the occluder, and the tree canopy is added on top when you
    ask signal to be blocked by trees. It then blends:
 
-   | Factor | What it rewards |
-   |---|---|
+   | Factor                 | What it rewards                                                                                                       |
+   | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
    | Line-of-sight coverage | sees the most flyable ground within range (drone at your chosen flight height, terrain plus tree canopy as occluders) |
-   | Legal ceiling | more usable vertical airspace (higher published LAANC ceiling) |
-   | Launch pad quality | open, level ground for a clean takeoff and GPS lock |
-   | High ground | local prominence for better antenna line-of-sight |
-   | Obstruction clearance | clear of trees and terrain right at the launch point |
-   | Airspace safety | clear of controlled no-go cells and nearby airports |
+   | Legal ceiling          | more usable vertical airspace (higher published LAANC ceiling)                                                        |
+   | Launch pad quality     | open, level ground for a clean takeoff and GPS lock                                                                   |
+   | High ground            | local prominence for better antenna line-of-sight                                                                     |
+   | Obstruction clearance  | clear of trees and terrain right at the launch point                                                                  |
+   | Airspace safety        | clear of controlled no-go cells and nearby airports                                                                   |
 
 5. You get ranked spots: a launch-suitability heatmap (red poor to cyan/green
    great), numbered pins, each spot's exact line-of-sight coverage footprint and

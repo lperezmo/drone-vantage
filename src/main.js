@@ -43,10 +43,13 @@ async function doSearch() {
   $('search-btn').textContent = '...';
   const ok = await map.geocode(q);
   $('search-btn').textContent = 'Go';
-  if (!ok) $('draw-hint').textContent = 'Could not find that place. Try lat,lng or a more specific name.';
+  if (!ok)
+    $('draw-hint').textContent = 'Could not find that place. Try lat,lng or a more specific name.';
 }
 $('search-btn').addEventListener('click', doSearch);
-$('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+$('search').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doSearch();
+});
 
 // ---- draw (toggle: tap again to cancel) ----
 $('draw-btn').addEventListener('click', () => {
@@ -61,12 +64,14 @@ $('draw-btn').addEventListener('click', () => {
   document.body.classList.add('drawing'); // collapses the sidebar on mobile for room
   $('draw-btn').classList.add('active');
   $('draw-btn').textContent = 'Cancel drawing';
-  $('draw-hint').textContent = 'Drag a box across your ground - press and drag on the map (touch works).';
+  $('draw-hint').textContent =
+    'Drag a box across your ground - press and drag on the map (touch works).';
 });
 $('clear-btn').addEventListener('click', () => {
   map.clearAll();
   endDrawUi();
-  lastResult = null; selectedRank = null;
+  lastResult = null;
+  selectedRank = null;
   $('results').innerHTML = '';
   $('analyze-btn').disabled = true;
   $('clear-btn').hidden = true;
@@ -78,7 +83,9 @@ $('clear-btn').addEventListener('click', () => {
 $('toggle-airspace').addEventListener('click', () => {
   airspaceVisible = !airspaceVisible;
   map.toggleCeiling(airspaceVisible);
-  $('toggle-airspace').textContent = airspaceVisible ? 'Hide airspace ceilings' : 'Show airspace ceilings';
+  $('toggle-airspace').textContent = airspaceVisible
+    ? 'Hide airspace ceilings'
+    : 'Show airspace ceilings';
 });
 
 // ---- analyze ----
@@ -90,8 +97,12 @@ function readUi() {
     droneAGL: Number($('drone-agl').value),
     signalThruTrees: $('thru-trees').checked,
     weights: {
-      los: +$('w-los').value, ceiling: +$('w-ceiling').value, launch: +$('w-launch').value,
-      prom: +$('w-prom').value, clearance: +$('w-clearance').value, airspace: +$('w-airspace').value,
+      los: +$('w-los').value,
+      ceiling: +$('w-ceiling').value,
+      launch: +$('w-launch').value,
+      prom: +$('w-prom').value,
+      clearance: +$('w-clearance').value,
+      airspace: +$('w-airspace').value,
     },
   };
 }
@@ -104,7 +115,10 @@ function runAnalysis(box) {
   setProgress(0.02, 'Starting...');
   // reflect the area in a shareable URL
   const u = new URL(location.href);
-  u.searchParams.set('bbox', [box.west, box.south, box.east, box.north].map((v) => v.toFixed(5)).join(','));
+  u.searchParams.set(
+    'bbox',
+    [box.west, box.south, box.east, box.north].map((v) => v.toFixed(5)).join(','),
+  );
   history.replaceState(null, '', u);
   worker.postMessage({ bbox: box, ui: readUi() });
 }
@@ -123,7 +137,9 @@ worker.onmessage = (e) => {
   } else if (msg.type === 'result') {
     running = false;
     $('analyze-btn').disabled = false;
-    setTimeout(() => { $('progress').hidden = true; }, 400);
+    setTimeout(() => {
+      $('progress').hidden = true;
+    }, 400);
     lastResult = msg.result;
     map.showHeatmap(lastResult);
     map.showCeiling(lastResult);
@@ -163,7 +179,7 @@ async function open3d(rank) {
   if (!spot) return;
   $('viewer').hidden = false;
   $('viewer-title').textContent = `3D coverage view - Launch ${rank}`;
-  view3dMod = view3dMod || await import('./scene/view3d.js');
+  view3dMod = view3dMod || (await import('./scene/view3d.js'));
   // give the canvas a frame to lay out before sizing the renderer
   requestAnimationFrame(() => view3dMod.openViewer($('viewer-canvas'), lastResult, spot));
 }

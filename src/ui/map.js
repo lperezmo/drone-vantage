@@ -12,7 +12,9 @@ const SAT_STYLE = {
   sources: {
     sat: {
       type: 'raster',
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      ],
       tileSize: 256,
       attribution: 'Imagery © Esri, Maxar, Earthstar Geographics',
       maxzoom: 19,
@@ -21,16 +23,21 @@ const SAT_STYLE = {
   layers: [{ id: 'sat', type: 'raster', source: 'sat' }],
 };
 
-const corners = (b) => [[b.west, b.north], [b.east, b.north], [b.east, b.south], [b.west, b.south]];
+const corners = (b) => [
+  [b.west, b.north],
+  [b.east, b.north],
+  [b.east, b.south],
+  [b.west, b.south],
+];
 
 // FAA legal AGL ceiling (ft) -> fill color. 0 = controlled, no LAANC (no-go).
 function ceilingColor(ft) {
-  if (ft >= 400) return '#22c55e';   // green - lots of vertical room
-  if (ft >= 300) return '#a3d34a';   // yellow-green
-  if (ft >= 200) return '#f5d04a';   // amber-yellow
-  if (ft >= 100) return '#f5a623';   // orange
-  if (ft >= 50) return '#f57e23';    // deep orange
-  return '#ef4444';                  // red - no LAANC / no-go
+  if (ft >= 400) return '#22c55e'; // green - lots of vertical room
+  if (ft >= 300) return '#a3d34a'; // yellow-green
+  if (ft >= 200) return '#f5d04a'; // amber-yellow
+  if (ft >= 100) return '#f5a623'; // orange
+  if (ft >= 50) return '#f57e23'; // deep orange
+  return '#ef4444'; // red - no LAANC / no-go
 }
 
 export function setupMap(onBox) {
@@ -42,7 +49,10 @@ export function setupMap(onBox) {
     attributionControl: { compact: true },
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
-  map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true } }), 'bottom-right');
+  map.addControl(
+    new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true } }),
+    'bottom-right',
+  );
 
   let drawing = false;
   let startLngLat = null;
@@ -56,25 +66,44 @@ export function setupMap(onBox) {
 
   map.on('load', () => {
     map.addSource('draw', { type: 'geojson', data: emptyFC() });
-    map.addLayer({ id: 'draw-fill', type: 'fill', source: 'draw', paint: { 'fill-color': '#38bdf8', 'fill-opacity': 0.12 } });
-    map.addLayer({ id: 'draw-line', type: 'line', source: 'draw', paint: { 'line-color': '#38bdf8', 'line-width': 2, 'line-dasharray': [2, 1] } });
+    map.addLayer({
+      id: 'draw-fill',
+      type: 'fill',
+      source: 'draw',
+      paint: { 'fill-color': '#38bdf8', 'fill-opacity': 0.12 },
+    });
+    map.addLayer({
+      id: 'draw-line',
+      type: 'line',
+      source: 'draw',
+      paint: { 'line-color': '#38bdf8', 'line-width': 2, 'line-dasharray': [2, 1] },
+    });
   });
 
-  function emptyFC() { return { type: 'FeatureCollection', features: [] }; }
+  function emptyFC() {
+    return { type: 'FeatureCollection', features: [] };
+  }
   function rectFeature(b) {
     return {
       type: 'FeatureCollection',
-      features: [{ type: 'Feature', geometry: { type: 'Polygon', coordinates: [[...corners(b), corners(b)[0]]] } }],
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [[...corners(b), corners(b)[0]]] },
+        },
+      ],
     };
   }
   const norm = (a, b) => ({
-    west: Math.min(a.lng, b.lng), east: Math.max(a.lng, b.lng),
-    south: Math.min(a.lat, b.lat), north: Math.max(a.lat, b.lat),
+    west: Math.min(a.lng, b.lng),
+    east: Math.max(a.lng, b.lng),
+    south: Math.min(a.lat, b.lat),
+    north: Math.max(a.lat, b.lat),
   });
 
   // ---- rectangle drawing (Pointer Events: works for mouse AND touch) ----
   const canvasEl = map.getCanvas();
-  let startPt = null;        // {x, y} pixel of the first corner
+  let startPt = null; // {x, y} pixel of the first corner
   let drawPointerId = null;
 
   function beginDraw() {
@@ -109,7 +138,11 @@ export function setupMap(onBox) {
     drawPointerId = e.pointerId;
     startPt = { x: e.clientX, y: e.clientY };
     startLngLat = eventLngLat(e);
-    try { canvasEl.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    try {
+      canvasEl.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   });
 
   canvasEl.addEventListener('pointermove', (e) => {
@@ -133,14 +166,23 @@ export function setupMap(onBox) {
     onBox(box);
   }
   canvasEl.addEventListener('pointerup', finishDraw);
-  canvasEl.addEventListener('pointercancel', () => { startLngLat = null; drawPointerId = null; });
+  canvasEl.addEventListener('pointercancel', () => {
+    startLngLat = null;
+    drawPointerId = null;
+  });
 
   // ---- overlays ----
   // Run fn once the style is ready (addSource throws otherwise).
   function whenStyle(fn) {
-    if (map.isStyleLoaded()) { fn(); return; }
+    if (map.isStyleLoaded()) {
+      fn();
+      return;
+    }
     const h = () => {
-      if (map.isStyleLoaded()) { map.off('styledata', h); fn(); }
+      if (map.isStyleLoaded()) {
+        map.off('styledata', h);
+        fn();
+      }
     };
     map.on('styledata', h);
   }
@@ -156,36 +198,55 @@ export function setupMap(onBox) {
       map.triggerRepaint();
     } else {
       map.addSource(id, { type: 'canvas', canvas, coordinates: corners(b), animate: false });
-      map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-opacity': id === 'heat' ? 0.7 : 0.6, 'raster-resampling': 'linear' } });
+      map.addLayer({
+        id,
+        type: 'raster',
+        source: id,
+        paint: { 'raster-opacity': id === 'heat' ? 0.7 : 0.6, 'raster-resampling': 'linear' },
+      });
     }
   }
 
-  function showHeatmap(result) { whenStyle(() => drawHeatmap(result)); }
+  function showHeatmap(result) {
+    whenStyle(() => drawHeatmap(result));
+  }
   function drawHeatmap(result) {
     const { cgW, cgH, heat } = result;
-    heatCanvas.width = cgW; heatCanvas.height = cgH;
+    heatCanvas.width = cgW;
+    heatCanvas.height = cgH;
     const ctx = heatCanvas.getContext('2d');
     const img = ctx.createImageData(cgW, cgH);
     for (let i = 0; i < heat.length; i++) {
       const [r, g, b] = ramp(heat[i]);
       const a = 40 + heat[i] * 180;
-      img.data[i * 4] = r; img.data[i * 4 + 1] = g; img.data[i * 4 + 2] = b; img.data[i * 4 + 3] = a;
+      img.data[i * 4] = r;
+      img.data[i * 4 + 1] = g;
+      img.data[i * 4 + 2] = b;
+      img.data[i * 4 + 3] = a;
     }
     ctx.putImageData(img, 0, 0);
     ensureOverlay('heat', heatCanvas, result.bbox);
     raiseBox();
   }
 
-  function showFootprint(result, spot) { whenStyle(() => drawFootprint(result, spot)); }
+  function showFootprint(result, spot) {
+    whenStyle(() => drawFootprint(result, spot));
+  }
   function drawFootprint(result, spot) {
     const { gridW, gridH } = result;
-    fpCanvas.width = gridW; fpCanvas.height = gridH;
+    fpCanvas.width = gridW;
+    fpCanvas.height = gridH;
     const ctx = fpCanvas.getContext('2d');
     const img = ctx.createImageData(gridW, gridH);
     const fp = spot.footprint;
     for (let i = 0; i < fp.length; i++) {
       // cyan LOS coverage tint
-      if (fp[i]) { img.data[i * 4] = 56; img.data[i * 4 + 1] = 211; img.data[i * 4 + 2] = 235; img.data[i * 4 + 3] = 150; }
+      if (fp[i]) {
+        img.data[i * 4] = 56;
+        img.data[i * 4 + 1] = 211;
+        img.data[i * 4 + 2] = 235;
+        img.data[i * 4 + 3] = 150;
+      }
     }
     ctx.putImageData(img, 0, 0);
     ensureOverlay('fp', fpCanvas, result.bbox);
@@ -193,7 +254,9 @@ export function setupMap(onBox) {
   }
 
   // ---- FAA airspace ceiling overlay ----
-  function showCeiling(result) { whenStyle(() => drawCeiling(result)); }
+  function showCeiling(result) {
+    whenStyle(() => drawCeiling(result));
+  }
   function drawCeiling(result) {
     removeCeiling();
     const air = result && result.airspace;
@@ -203,7 +266,8 @@ export function setupMap(onBox) {
     for (const z of air.zones) {
       if (z.kind === 'ceiling' && Array.isArray(z.ring) && z.ring.length >= 3) {
         const ring = [...z.ring];
-        const f = ring[0], l = ring[ring.length - 1];
+        const f = ring[0],
+          l = ring[ring.length - 1];
         if (f[0] !== l[0] || f[1] !== l[1]) ring.push(f); // close the ring
         const ft = Number.isFinite(z.ceilingFt) ? z.ceilingFt : 0;
         features.push({
@@ -217,11 +281,15 @@ export function setupMap(onBox) {
     if (features.length) {
       map.addSource('ceiling', { type: 'geojson', data: { type: 'FeatureCollection', features } });
       map.addLayer({
-        id: 'ceiling-fill', type: 'fill', source: 'ceiling',
+        id: 'ceiling-fill',
+        type: 'fill',
+        source: 'ceiling',
         paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.32 },
       });
       map.addLayer({
-        id: 'ceiling-line', type: 'line', source: 'ceiling',
+        id: 'ceiling-line',
+        type: 'line',
+        source: 'ceiling',
         paint: { 'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': 0.8 },
       });
     }
@@ -234,22 +302,28 @@ export function setupMap(onBox) {
 
   function addAirportMarkers(air) {
     clearAirportMarkers();
-    const list = (Array.isArray(air.airports) && air.airports.length)
-      ? air.airports
-      : (air.zones || []).filter((z) => z.kind === 'airport');
+    const list =
+      Array.isArray(air.airports) && air.airports.length
+        ? air.airports
+        : (air.zones || []).filter((z) => z.kind === 'airport');
     for (const a of list) {
       if (!Number.isFinite(a.lon) || !Number.isFinite(a.lat)) continue;
       const el = document.createElement('div');
       el.className = 'airport-mk';
       el.title = a.name || 'Airport';
       el.textContent = 'A';
-      const m = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([a.lon, a.lat]).addTo(map);
+      const m = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([a.lon, a.lat])
+        .addTo(map);
       airportMarkers.push(m);
     }
   }
 
   function ensureCeilingLegend() {
-    if (ceilingLegendEl) { ceilingLegendEl.style.display = ''; return; }
+    if (ceilingLegendEl) {
+      ceilingLegendEl.style.display = '';
+      return;
+    }
     const el = document.createElement('div');
     el.className = 'ceiling-legend';
     el.innerHTML = `
@@ -268,24 +342,37 @@ export function setupMap(onBox) {
     for (const id of ['ceiling-fill', 'ceiling-line']) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
     }
-    airportMarkers.forEach((m) => { m.getElement().style.display = visible ? '' : 'none'; });
+    airportMarkers.forEach((m) => {
+      m.getElement().style.display = visible ? '' : 'none';
+    });
     if (ceilingLegendEl) ceilingLegendEl.style.display = visible ? '' : 'none';
   }
 
   // robust whether called before or after showCeiling
-  function toggleCeiling(visible) { whenStyle(() => setCeilingVisibility(visible)); }
+  function toggleCeiling(visible) {
+    whenStyle(() => setCeilingVisibility(visible));
+  }
 
-  function clearAirportMarkers() { airportMarkers.forEach((m) => m.remove()); airportMarkers.length = 0; }
+  function clearAirportMarkers() {
+    airportMarkers.forEach((m) => m.remove());
+    airportMarkers.length = 0;
+  }
   function removeCeiling() {
     for (const id of ['ceiling-fill', 'ceiling-line']) {
       if (map.getLayer(id)) map.removeLayer(id);
     }
     if (map.getSource('ceiling')) map.removeSource('ceiling');
     clearAirportMarkers();
-    if (ceilingLegendEl) { ceilingLegendEl.remove(); ceilingLegendEl = null; }
+    if (ceilingLegendEl) {
+      ceilingLegendEl.remove();
+      ceilingLegendEl = null;
+    }
   }
 
-  function clearMarkers() { markers.forEach((m) => m.remove()); markers.length = 0; }
+  function clearMarkers() {
+    markers.forEach((m) => m.remove());
+    markers.length = 0;
+  }
 
   function addMarkers(spots, onSelect) {
     clearMarkers();
@@ -293,16 +380,31 @@ export function setupMap(onBox) {
       const el = document.createElement('div');
       el.className = 'pin';
       Object.assign(el.style, {
-        width: '26px', height: '26px', borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)',
-        background: '#38bdf8', color: '#08151c', display: 'grid', placeItems: 'center',
-        fontWeight: '700', fontSize: '13px', border: '2px solid #08151c', cursor: 'pointer',
+        width: '26px',
+        height: '26px',
+        borderRadius: '50% 50% 50% 0',
+        transform: 'rotate(-45deg)',
+        background: '#38bdf8',
+        color: '#08151c',
+        display: 'grid',
+        placeItems: 'center',
+        fontWeight: '700',
+        fontSize: '13px',
+        border: '2px solid #08151c',
+        cursor: 'pointer',
         boxShadow: '0 2px 6px rgba(0,0,0,.5)',
       });
       const inner = document.createElement('span');
-      inner.textContent = s.rank; inner.style.transform = 'rotate(45deg)';
+      inner.textContent = s.rank;
+      inner.style.transform = 'rotate(45deg)';
       el.appendChild(inner);
-      el.addEventListener('click', (ev) => { ev.stopPropagation(); onSelect(s.rank); });
-      const m = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([s.lon, s.lat]).addTo(map);
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        onSelect(s.rank);
+      });
+      const m = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([s.lon, s.lat])
+        .addTo(map);
       markers.push(m);
     });
   }
@@ -320,33 +422,66 @@ export function setupMap(onBox) {
 
   async function geocode(q) {
     const m = q.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-    if (m) { const lat = +m[1], lon = +m[2]; map.flyTo({ center: [lon, lat], zoom: 14 }); return true; }
+    if (m) {
+      const lat = +m[1],
+        lon = +m[2];
+      map.flyTo({ center: [lon, lat], zoom: 14 });
+      return true;
+    }
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, {
-        headers: { 'Accept-Language': 'en' },
-      });
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+        {
+          headers: { 'Accept-Language': 'en' },
+        },
+      );
       const data = await r.json();
       if (!data.length) return false;
       const { lat, lon, boundingbox } = data[0];
       if (boundingbox) {
-        map.fitBounds([[+boundingbox[2], +boundingbox[0]], [+boundingbox[3], +boundingbox[1]]], { maxZoom: 14, padding: 40 });
+        map.fitBounds(
+          [
+            [+boundingbox[2], +boundingbox[0]],
+            [+boundingbox[3], +boundingbox[1]],
+          ],
+          { maxZoom: 14, padding: 40 },
+        );
       } else {
         map.flyTo({ center: [+lon, +lat], zoom: 14 });
       }
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
   function setBox(b, { fit = true } = {}) {
     box = b;
     const apply = () => map.getSource('draw')?.setData(rectFeature(b));
-    if (map.isStyleLoaded()) apply(); else map.once('load', apply);
-    if (fit) map.fitBounds([[b.west, b.south], [b.east, b.north]], { padding: 60, duration: 0 });
+    if (map.isStyleLoaded()) apply();
+    else map.once('load', apply);
+    if (fit)
+      map.fitBounds(
+        [
+          [b.west, b.south],
+          [b.east, b.north],
+        ],
+        { padding: 60, duration: 0 },
+      );
   }
 
   return {
-    map, beginDraw, cancelDraw, geocode, setBox,
-    showHeatmap, showFootprint, showCeiling, toggleCeiling, addMarkers, clearAll,
+    map,
+    beginDraw,
+    cancelDraw,
+    geocode,
+    setBox,
+    showHeatmap,
+    showFootprint,
+    showCeiling,
+    toggleCeiling,
+    addMarkers,
+    clearAll,
     getBox: () => box,
     flyToSpot: (s) => map.flyTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), 14.5) }),
   };
@@ -355,7 +490,10 @@ export function setupMap(onBox) {
 // score 0..1 -> red(poor) .. amber .. cyan/green(great)
 function ramp(t) {
   t = Math.max(0, Math.min(1, t));
-  if (t < 0.5) { const u = t / 0.5; return [239, 68 + u * 98, 68 + u * 7]; }   // red -> amber
+  if (t < 0.5) {
+    const u = t / 0.5;
+    return [239, 68 + u * 98, 68 + u * 7];
+  } // red -> amber
   const u = (t - 0.5) / 0.5;
-  return [237 - u * 203, 166 + u * 45, 75 + u * 160];                          // amber -> cyan/green
+  return [237 - u * 203, 166 + u * 45, 75 + u * 160]; // amber -> cyan/green
 }
