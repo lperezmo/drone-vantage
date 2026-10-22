@@ -6,15 +6,7 @@
 //
 // Runs inside the analysis Web Worker (uses fetch + createImageBitmap + OffscreenCanvas).
 
-import {
-  TILE,
-  lon2tile,
-  lat2tile,
-  mercPerPx,
-  metersPerPx,
-  decodeTerrarium,
-  pickDemZoom,
-} from './geo.js';
+import { TILE, lon2tile, lat2tile, metersPerPx, decodeTerrarium, pickDemZoom } from './geo.js';
 
 const tileUrl = (src, z, x, y) => `/api/tiles?src=${src}&z=${z}&x=${x}&y=${y}`;
 

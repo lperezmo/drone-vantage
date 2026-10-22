@@ -11,7 +11,6 @@ const worker = new Worker(new URL('./analysis/worker.js', import.meta.url), { ty
 
 let lastResult = null;
 let panelCtl = null;
-let selectedRank = null;
 let running = false;
 let airspaceVisible = true;
 
@@ -71,7 +70,6 @@ $('clear-btn').addEventListener('click', () => {
   map.clearAll();
   endDrawUi();
   lastResult = null;
-  selectedRank = null;
   $('results').innerHTML = '';
   $('analyze-btn').disabled = true;
   $('clear-btn').hidden = true;
@@ -165,7 +163,6 @@ function selectSpot(rank) {
   if (!lastResult) return;
   const spot = lastResult.spots.find((s) => s.rank === rank);
   if (!spot) return;
-  selectedRank = rank;
   panelCtl?.select(rank);
   map.showFootprint(lastResult, spot);
   map.flyToSpot(spot);

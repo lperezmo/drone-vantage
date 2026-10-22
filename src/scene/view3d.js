@@ -142,7 +142,7 @@ export function openViewer(canvas, result, spot) {
       lid.position.set(vWorld.x, launchGround + Math.max(20, W * 0.03), vWorld.z);
       scene.add(lid);
     }
-  } catch (e) {
+  } catch {
     // defensive: a missing or odd ceiling must never break the viewer
   }
 
