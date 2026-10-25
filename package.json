@@ -10,7 +10,7 @@
     "preview": "bun --bun vite preview",
     "check": "bun fmt --check . && bun lint --max-warnings 0 && bun run build"
   },
-  "packageManager": "bun@1.4.2",
+  "packageManager": "bun@1.4.4",
   "dependencies": {
     "maplibre-gl": "^6.15.0",
     "three": "^0.170.0"
